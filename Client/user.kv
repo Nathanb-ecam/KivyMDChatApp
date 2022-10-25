@@ -1,0 +1,88 @@
+MyScreenManager:
+    LoginScreen:
+    ContactScreen:
+    SendScreen:
+
+<LoginScreen>:
+    name:"login_screen"
+    BoxLayout:
+        orientation:"vertical"
+        size_hint:(0.5,0.6)
+        pos_hint:{'center_x':0.5,'center_y':0.5}
+        # Image:
+        #     source:"logo.jfif"
+        MDLabel:
+            text:"Entrer votre nom"
+            bold:True
+            font_style:"H5"
+        MDTextField:
+            id:name
+            multiline:"False"
+            icon_right:"account"
+        MDLabel:
+            text:"Mot de passe"
+            bold:True
+            font_style:"H5"
+            
+        MDTextField:
+            id:password
+            multiline:"False"
+            icon_right:"eye-off"
+
+        MDRaisedButton:
+            text:"Vérifier les données"
+            on_release: root.login(name,password)
+        BoxLayout:
+            orientation:"horizontal"
+            size_hint:(0.5,0.6)
+            pos_hint:{'center_x':0.8,'center_y':0.}
+            MDLabel:
+                text:"Changer le theme" 
+                 
+            MDSwitch:
+                widget_style:"android"
+                on_active: root.switch_theme(*args)
+
+<ContactScreen>:
+    name:"contact_screen"
+    BoxLayout:
+        orientation:"vertical"
+        size_hint:(0.5,0.6)
+        pos_hint:{'center_x':0.5,'center_y':0.5}
+        BoxLayout:
+            orientation:"horizontal"
+            MDLabel:
+                text:"Liste des contacts"
+            MDRaisedButton:
+                text:"Refresh"
+                on_release: root.refresh_contacts()
+        ScrollView:
+            MDList:
+                id:"container"
+
+
+<SendScreen>:
+    name:"send_screen"
+    BoxLayout:
+        orientation:"vertical"
+        pos_hint:{'center_x':0.5,'center_y':0.5}
+        # size_hint:(0.5,0.6)
+        BoxLayout:
+            orientation:"horizontal"
+            MDLabel:
+                text:"Destinataire"
+            MDLabel:
+                text:"Michel par example"
+        BoxLayout:
+            orientation:"horizontal"
+            MDTextField:
+                id:message
+                multiline:"False"
+            MDRaisedButton:
+                text:"Envoyer message"
+
+
+            
+            
+
+
