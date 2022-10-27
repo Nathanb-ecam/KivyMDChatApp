@@ -54,20 +54,18 @@ class UserApp(MDApp):
         client._connect_to_server()
         self.connected = True
     
-    def disconnect_from_server(self,instance):
+    def disconnect_from_server(self):
         client._disconnect_from_server(self.user)
-        sys.exit()
+        
 
     def send(self,expeditor,message,destinator):
         # verifier qu'on soit connecter au serveur 
         if self.connected:
             client._send({'_transfer':{"UserInformations":{'Username':expeditor,'Message':message,'Destinator':destinator}}})
 
-    def get_users_from_app(self): # if not in the file, not allowed to log in 
+    def is_allowed(self,name,password): # if not in the file, not allowed to log in 
         if self.connected:
-            data = client._all_People_allowed()
-            # self.connecteds.values = data.values()
-            allowed = data
+            allowed = client._send_allowed_request({"Username":name,"Password":password})
         return allowed
 
     def connected_people_list(self):
@@ -98,11 +96,10 @@ userApp = UserApp()
 class LoginScreen(Screen):
     def login(self,name,password):
         """faire une form validation avec regex"""
-        allowed = userApp.get_users_from_app()
-        for client in allowed:
-            if client["Username"]==name.text and client["Password"] ==password.text:
-                userApp.logged=True
-                break
+        allowed = userApp.is_allowed(name.text,password.text)
+        print(allowed)
+        if allowed["_allowed"]["status"]=="Acces Authorized":
+            userApp.logged=True
             
 
         if userApp.logged:
@@ -135,9 +132,16 @@ class ContactScreen(Screen):
     def refresh_contacts(self):
         connecteds = userApp.connected_people_list()
         self.ids.container.clear_widgets()
+        contact_names=[]
         for contact in connecteds:
-            item = OneLineListItem(text=contact["Username"])
-            item.id =contact["Username"]
+            if contact["Username"] not in contact_names and contact["Username"]!=userApp.user.name:
+                contact_names.append(contact["Username"])
+
+
+
+        for username in contact_names:
+            item = OneLineListItem(text=username)
+            item.id =username
             item.bind(on_press=self.go_to_contact)
             self.ids.container.add_widget(item)
 
@@ -152,6 +156,9 @@ class ContactScreen(Screen):
     def load_contact_page(self,contact):
         pass
 
+    def quit(self):
+        userApp.disconnect_from_server()
+        sys.exit()
             
 
 

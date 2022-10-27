@@ -62,45 +62,55 @@ class AppServer(threading.Thread):
     def _authentification(self,auth):
         username,password,image = auth
         user = User(username,password,image)
-        l = []
-        for username in _connected_people:
-            l.append(_connected_people[username]["Username"])
+        # l = []
+        # for username in _connected_people:
+        #     l.append(_connected_people[username]["Username"])
 
         number_of_clients = len(_connected_people)
-        if username not in l:
-            _connected_people["Client"+str(number_of_clients)] = {"Username":user.name,"Password":user.password,"Image":user.image}
+        # if username not in l:
+        _connected_people["Client"+str(number_of_clients)] = {"Username":user.name,"Password":user.password,"Image":user.image}
             
     def _disconnect_from_server(self,Username):
         print(f"{Username} vient de se déconnecter")
         #eviter la boucle
-        for k in _connected_people.keys():
-            if _connected_people[k] == Username:
-                _connected_people.pop(k)
+        for client in _connected_people:
+            if _connected_people[client]['Username'] == Username:
+                _connected_people.pop(client)
    
 
     def _connected_people(self):
-        print(_connected_people)
         answer = json.dumps(_connected_people).encode("utf-8")
         self.conn.send(answer)
-        print("ANSWER ",answer)
+
 
     def _transfer_message(self,sender,message,destinator):
         print("Expeditor :",sender)
         print("Message :",message)
         print("Destinator :",destinator)
 
-    def _allowed_people(self):
-        answer = json.dumps(_allowed_people).encode("utf-8")
-        self.conn.send(answer)
-
+    def _is_allowed(self,name,password):
+        for client in _allowed_people:
+            if client["Username"]==name and client["Password"] ==password:
+                msg_dict = {"_allowed":{"status":"Acces Authorized"}}
+                break
+        try:
+            answer = json.dumps(msg_dict).encode("utf-8") 
+        except:
+            answer = json.dumps({"_allowed":{"status":"Acces Refused"}}).encode("utf-8")
+        finally:
+            self.conn.send(answer)
 
     def _receive(self):
-        handlers = {"_authentification":self._authentification,"_connected":self._connected_people,"_disconnect":self._disconnect_from_server,'_receive':self._receive,"_transfer":self._transfer_message,"_allowed":self._allowed_people}
+        handlers = {"_authentification":self._authentification,"_connected":self._connected_people,"_disconnect":self._disconnect_from_server,'_receive':self._receive,"_transfer":self._transfer_message,"_allowed":self._is_allowed}
         try:
             data = self.conn.recv(1024) # taille de reception de données 
             data = data.decode("utf-8")
             data = json.loads(data)
             print("Received DATA :\n",data)
+            print("________________________________")
+            print("Connected people :\n",_connected_people)
+            print("________________________________")
+
             for key in data:
                 if key in handlers:
                     print("Action ... \t",key[1:])
@@ -111,7 +121,7 @@ class AppServer(threading.Thread):
                     elif key==Options.transfer:
                         handlers[key](data[Options.transfer]["UserInformations"]["Username"],data[Options.transfer]["UserInformations"]["Message"],data[Options.transfer]["UserInformations"]['Destinator'])
                     elif key==Options.allowed:
-                        handlers[key]() #data[Options.allowed]["UserInformations"]["Username"],data[Options.allowed]["UserInformations"]["Password"]
+                        handlers[key](data[Options.allowed]["Username"],data[Options.allowed]["Password"]) 
                     elif key==Options.connecteds:
                         handlers[key]()
                     else:

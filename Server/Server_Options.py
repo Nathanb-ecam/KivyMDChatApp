@@ -4,7 +4,7 @@ class Server_Options:
         self.disconnected = "_disconnect"
         self.registered = "_authentification"
         self.transfer = "_transfer"
-        self.allowed = "_allowed_people" # to validate if a user can sign in or not
+        self.allowed = "_allowed" # to validate if a user can sign in or not
 
 
  
