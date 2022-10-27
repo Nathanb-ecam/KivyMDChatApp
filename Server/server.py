@@ -5,7 +5,7 @@ import json
 
 import time
 from Server_Options import Server_Options
-
+from User import User
 
 SERVER = socket.gethostbyname(socket.gethostname())
 print("SERVER :",SERVER)
@@ -31,10 +31,15 @@ class AppServer(threading.Thread):
         self.port = server.getsockname()[1]
 
     def _authentification(self,auth):
-        username,password = auth
-        if username not in _connected_people.values():
-            number_of_clients = len(_connected_people.values())
-            _connected_people["Client"+str(number_of_clients)]= username
+        username,password,image = auth
+        user = User(username,password,image)
+        l = []
+        for username in _connected_people:
+            l.append(_connected_people[username]["Username"])
+
+        number_of_clients = len(_connected_people)
+        if username not in l:
+            _connected_people["Client"+str(number_of_clients)] = {"Username":user.name,"Password":user.password,"Image":user.image}
             
     def _disconnect_from_server(self,Username):
         print(f"{Username} vient de se déconnecter")
@@ -45,8 +50,10 @@ class AppServer(threading.Thread):
    
 
     def _connected_people(self):
+        print(_connected_people)
         answer = json.dumps(_connected_people).encode("utf-8")
         self.conn.send(answer)
+        print("ANSWER ",answer)
 
     def _transfer_message(self,sender,message,destinator):
         print("Expeditor :",sender)
@@ -66,7 +73,7 @@ class AppServer(threading.Thread):
                 if key in handlers:
                     print("Action ... \t",key[1:])
                     if key==Options.registered:
-                        handlers[key]((data[Options.registered]["UserInformations"]["Username"],data[Options.registered]["UserInformations"]["Password"]))
+                        handlers[key]((data[Options.registered]["UserInformations"]["Username"],data[Options.registered]["UserInformations"]["Password"],data[Options.registered]["UserInformations"]["Image"]))
                     elif key==Options.disconnected:
                         handlers[key](data[Options.disconnected]["Username"])
                     elif key==Options.transfer:

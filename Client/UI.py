@@ -5,15 +5,15 @@ from kivymd.uix.label import MDLabel
 from kivy.uix.label import Label
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton,MDRaisedButton
-from kivymd.uix.list import OneLineListItem
+from kivymd.uix.list import OneLineListItem,ThreeLineListItem,OneLineAvatarListItem,ImageLeftWidget,IconLeftWidget
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
 from kivy.uix.image import Image
-
-
+from kivy.properties import ObjectProperty, NumericProperty,StringProperty
+from kivymd.icon_definitions import md_icons
 
 
 """
@@ -54,15 +54,14 @@ class UserApp(MDApp):
         client._connect_to_server()
         self.connected = True
     
-
     def disconnect_from_server(self,instance):
         client._disconnect_from_server(self.user)
         sys.exit()
-    
-    def send(self,instance):
+
+    def send(self,expeditor,message,destinator):
         # verifier qu'on soit connecter au serveur 
         if self.connected:
-            client._send({'_transfer':{"UserInformations":{'Username':self.user.name,'Message':self.message.text,'Destinator':self.destinator}}})
+            client._send({'_transfer':{"UserInformations":{'Username':expeditor,'Message':message,'Destinator':destinator}}})
 
     def connected_people_list(self):
         if self.connected:
@@ -71,21 +70,10 @@ class UserApp(MDApp):
             connecteds = data.values()
         return connecteds
 
-               
-    def page_manager(self,instance):
-        pages = {'_login':'loginScreen','_contact':"contactScreen",'_send':'sendScreen'}
-        sm.current = pages[instance.id]
-    
-    def contact_selector(self,instance):
-        if self.connecteds.text != "Connected Peoples": # on verifie qu'il ai bien selectionner un contact valable dans le spinner
-            selected_contact = self.connecteds.text
-            print("SELECTED CONTACT:",selected_contact)
-            self.page_manager(instance)   
-            self.destinator.text = selected_contact 
-
-
     def build(self):
         #Initialisation des variables 
+        self.user = ""
+        self.allUsers = [] # object of type User list
         self.contacts = []
         self.ids = {}
         self.connected = False
@@ -97,57 +85,69 @@ class UserApp(MDApp):
         self.theme_cls.primary_palette = "Blue" #Orange , Red
         """"""
 
-       
-        """
-                __________________________________________________________________________________________________________________________________________________________________
-        """
-user = UserApp()
+userApp = UserApp()
 
 class LoginScreen(Screen):
     def login(self,name,password):
-        print(".KV file")
         """faire une form validation avec regex"""
         #stocker les users dans un json
-        self.user = User(name.text,password.text)
+        userApp.user = User(name.text,password.text,"../Assets/v.jpg")
         print("user added")
-        print(self.user)
+        print(userApp.user)
         self.registerClient_ToServer() 
-        user.root.current = "contact_screen"
+        userApp.root.current = "contact_screen"
 
 
     def registerClient_ToServer(self):
-        if user.connected:
-            client._send({'_authentification':{"UserInformations":{"Username":self.user.name,"Password":self.user.password}}})
+        if userApp.connected:
+            client._send({'_authentification':{"UserInformations":{"Username":userApp.user.name,"Password":userApp.user.password,"Image":userApp.user.image}}})
             print("Username envoyé au SERVEUR")
         else:
             print("Not connected")
 
     def switch_theme(self,checkbox,value):
         if value:
-            user.theme_cls.theme_style ="Dark"
-            user.theme_cls.primary_palette="Orange"
+            userApp.theme_cls.theme_style ="Dark"
+            userApp.theme_cls.primary_palette="Orange"
         else:
-            user.theme_cls.theme_style ="Light"
-            user.theme_cls.primary_palette="Blue"
+            userApp.theme_cls.theme_style ="Light"
+            userApp.theme_cls.primary_palette="Blue"
 
 
 
 class ContactScreen(Screen):
     def refresh_contacts(self):
-        connecteds = user.connected_people_list()
-        # user.root.current = "send_screen"  
-        print(self.ids.container)        
-      
-        for i in range(len(connecteds)):
-            item = OneLineListItem(text="item" + str(i))
-            # ContactScreen.ids.container.add_widget(item)
-            #.container.add_widget(item)
+        connecteds = userApp.connected_people_list()
+        self.ids.container.clear_widgets()
+        for contact in connecteds:
+            item = OneLineListItem(text=contact["Username"])
+            item.id =contact["Username"]
+            item.bind(on_press=self.go_to_contact)
+            self.ids.container.add_widget(item)
+
+    def go_to_contact(self,instance):
+        self.manager.get_screen("send_screen").ids.destinator.text = instance.text
+        if instance.text in userApp.allUsers:
+            self.manager.get_screen("send_screen").ids.destinator_image.source = userApp.user.image
+        
+        self.load_contact_page(instance.text)
+        userApp.root.current = "send_screen"
+
+    def load_contact_page(self,contact):
+        pass
+
             
 
 
 
 class SendScreen(Screen):
-    pass
+    def send_message(self):
+        message = self.ids.message.text
+        userApp.send(userApp.user.name,message,self.ids.destinator.text)
+        print(f"Utilisateur : {userApp.user.name}, message : {message} à {self.ids.destinator.text}")
+        
+
+    
 class MyScreenManager(ScreenManager):
     pass
 
@@ -155,4 +155,4 @@ class MyScreenManager(ScreenManager):
 
 
 
-user.run()
+userApp.run()

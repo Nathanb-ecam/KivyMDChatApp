@@ -11,35 +11,58 @@ MyScreenManager:
         pos_hint:{'center_x':0.5,'center_y':0.5}
         # Image:
         #     source:"logo.jfif"
-        MDLabel:
-            text:"Entrer votre nom"
-            bold:True
-            font_style:"H5"
-        MDTextField:
-            id:name
-            multiline:"False"
-            icon_right:"account"
-        MDLabel:
-            text:"Mot de passe"
-            bold:True
-            font_style:"H5"
-            
-        MDTextField:
-            id:password
-            multiline:"False"
-            icon_right:"eye-off"
-
-        MDRaisedButton:
-            text:"Vérifier les données"
-            on_release: root.login(name,password)
+        MDIconButton:
+            pos_hint:{'center_x':0.5,'center_y':0.5}
+            size_hint:(1,0.5)
+            icon:"qqchat"
         BoxLayout:
             orientation:"horizontal"
-            size_hint:(0.5,0.6)
-            pos_hint:{'center_x':0.8,'center_y':0.}
+            size_hint:(1,0.4)
+            BoxLayout:
+                orientation:"vertical"
+                # MDLabel:
+                #     size_hint:(1,0.3)
+                #     text:"Entrer votre nom"
+                #     bold:True
+                #     font_style:"H5"
+                MDTextField:
+                    id:name
+                    hint_text:"Name"
+                    multiline:"False"
+                    icon_right:"account"
+        BoxLayout:
+            orientation:"horizontal"
+            size_hint:(1,0.4)
+
+            BoxLayout:
+                orientation:"vertical"
+                # MDLabel:
+                #     size_hint:(1,0.3)
+                #     text:"Mot de passe"
+                    
+                #     bold:True
+                #     font_style:"H5"
+                    
+                MDTextField:
+                    id:password
+                    hint_text:"Password"
+                    multiline:"False"
+                    icon_right:"eye-off"
+        BoxLayout:
+            orientation:"horizontal"
+            size_hint:(1,0.2)
+            spacing:35
+            # pos_hint:{'center_x':0.5,'center_y':0.5}
+            MDRaisedButton:
+                size_hint:(0.45,0.5)
+                text:"Vérifier les données"
+                on_release: root.login(name,password)                
             MDLabel:
+                size_hint:(0.45,0.5)
                 text:"Changer le theme" 
-                 
+                # pos_hint:{'center_x':0.75,'center_y':1}   
             MDSwitch:
+                size_hint:(0.1,0.5)
                 widget_style:"android"
                 on_active: root.switch_theme(*args)
 
@@ -47,39 +70,77 @@ MyScreenManager:
     name:"contact_screen"
     BoxLayout:
         orientation:"vertical"
-        size_hint:(0.5,0.6)
+        size_hint:(0.5,0.8)
         pos_hint:{'center_x':0.5,'center_y':0.5}
         BoxLayout:
+            size_hint:(1,0.15)
             orientation:"horizontal"
+            spacing:25
             MDLabel:
+                size_hint:(0.75,0.35)
                 text:"Liste des contacts"
             MDRaisedButton:
+                size_hint:(0.25,0.35)
                 text:"Refresh"
                 on_release: root.refresh_contacts()
         ScrollView:
+            size_hint:(1,0.85)
             MDList:
-                id:"container"
+                id:container
+        
 
 
 <SendScreen>:
     name:"send_screen"
+
+    MDRaisedButton:
+        # size_hint:(0.25,0.35)
+        text:"Retooour"
+        on_release: app.root.current="contact_screen"
     BoxLayout:
+        size_hint:(0.75,0.85)
+        spacing:25
         orientation:"vertical"
         pos_hint:{'center_x':0.5,'center_y':0.5}
-        # size_hint:(0.5,0.6)
+        # # size_hint:(0.5,0.6)
+        
+        OneLineAvatarListItem:
+            id:destinator
+            text: "Michel"
+            ImageLeftWidget:
+                id:destinator_image
+                source: "../Assets/m.jpg"
         BoxLayout:
-            orientation:"horizontal"
+            orientation:"vertical"
+            # ScrollView:
+            #     MDList:
+            #         id:message_list
+            #         # OneLineListItem:
+            #         #     text:"message recu"
+            #         ThreeLineListItem:
+            #             text:"Victoria"
+            #             secondary_text:"18h32"
+            #             tertiary_text:"Coucou, ca va pd"
+            #         ThreeLineListItem:
+            #             text:"Nathan"
+            #             secondary_text:"18h35"
+            #             tertiary_text:"Coucou fdp"
             MDLabel:
-                text:"Destinataire"
-            MDLabel:
-                text:"Michel par example"
+                size_hint:(0.9,1)
+
         BoxLayout:
+            size_hint:(1,0.25)
             orientation:"horizontal"
+            spacing:10
             MDTextField:
+                size_hint:(0.9,1)
                 id:message
                 multiline:"False"
-            MDRaisedButton:
-                text:"Envoyer message"
+            MDIconButton:
+                id:send_btn
+                on_release:root.send_message()
+                size_hint:(0.1,1)
+                icon:"send-circle-outline"
 
 
             
