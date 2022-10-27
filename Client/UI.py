@@ -63,6 +63,13 @@ class UserApp(MDApp):
         if self.connected:
             client._send({'_transfer':{"UserInformations":{'Username':expeditor,'Message':message,'Destinator':destinator}}})
 
+    def get_users_from_app(self): # if not in the file, not allowed to log in 
+        if self.connected:
+            data = client._all_People_allowed()
+            # self.connecteds.values = data.values()
+            allowed = data
+        return allowed
+
     def connected_people_list(self):
         if self.connected:
             data = client._connectedPeople()
@@ -75,6 +82,7 @@ class UserApp(MDApp):
         self.user = ""
         self.allUsers = [] # object of type User list
         self.contacts = []
+        self.logged = False # boolean to check if user in database
         self.ids = {}
         self.connected = False
         self.connect_to_server()
@@ -90,12 +98,20 @@ userApp = UserApp()
 class LoginScreen(Screen):
     def login(self,name,password):
         """faire une form validation avec regex"""
-        #stocker les users dans un json
-        userApp.user = User(name.text,password.text,"../Assets/v.jpg")
-        print("user added")
-        print(userApp.user)
-        self.registerClient_ToServer() 
-        userApp.root.current = "contact_screen"
+        allowed = userApp.get_users_from_app()
+        for client in allowed:
+            if client["Username"]==name.text and client["Password"] ==password.text:
+                userApp.logged=True
+                break
+            
+
+        if userApp.logged:
+            #stocker les users dans un json
+            userApp.user = User(name.text,password.text,"../Assets/v.jpg")
+            print("user added")
+            print(userApp.user)
+            self.registerClient_ToServer() 
+            userApp.root.current = "contact_screen"
 
 
     def registerClient_ToServer(self):
@@ -144,7 +160,6 @@ class SendScreen(Screen):
     def send_message(self):
         message = self.ids.message.text
         userApp.send(userApp.user.name,message,self.ids.destinator.text)
-        print(f"Utilisateur : {userApp.user.name}, message : {message} à {self.ids.destinator.text}")
         
 
     

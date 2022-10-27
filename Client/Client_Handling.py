@@ -55,3 +55,10 @@ class Client_Handling:
         client.sendall(data)
         data = self._receive()
         return data
+
+    def _all_People_allowed(self):
+        msg_dict = {'_allowed':""}
+        data = json.dumps(msg_dict).encode("utf-8")
+        client.sendall(data)
+        data = self._receive()
+        return data

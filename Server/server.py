@@ -12,13 +12,42 @@ print("SERVER :",SERVER)
 PORT = 5566 # le serveur n'a pas besoin d'adresse car il ne fait qu'ecouter
 print("PORT :",PORT)
 
-
-
 server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 server.bind((SERVER, PORT))
 print("Le serveur est démarré ... ",sep='\n')
 
+""" We retrieve allowed people to access the app from a txt file
+
+"""
+def get_allowed_people():
+    allowed_people = read_users_from_file()
+    return allowed_people
+
+
+def read_users_from_file():
+    users = []
+    with open("./Server/users.txt","r") as f:
+        print("#######################")
+        print("All allowed people \n")
+        for line in f.readlines():
+            print(line.rstrip())
+            users.append(json.loads(line.rstrip()))
+        print("#######################")
+    return users
+
+
+def write_users_to_file():
+    with open("./Server/users.txt","w") as f:
+        for client in _connected_people:
+            f.write(json.dumps(_connected_people[client])+"\n")
+
+
+
 _connected_people = dict()
+_allowed_people = get_allowed_people()
+
+
+
 Options = Server_Options()
 
 # pour gerer plusieur connexion de client simultanément 
@@ -60,10 +89,13 @@ class AppServer(threading.Thread):
         print("Message :",message)
         print("Destinator :",destinator)
 
+    def _allowed_people(self):
+        answer = json.dumps(_allowed_people).encode("utf-8")
+        self.conn.send(answer)
 
 
     def _receive(self):
-        handlers = {"_authentification":self._authentification,"_connected":self._connected_people,"_disconnect":self._disconnect_from_server,'_receive':self._receive,"_transfer":self._transfer_message}
+        handlers = {"_authentification":self._authentification,"_connected":self._connected_people,"_disconnect":self._disconnect_from_server,'_receive':self._receive,"_transfer":self._transfer_message,"_allowed":self._allowed_people}
         try:
             data = self.conn.recv(1024) # taille de reception de données 
             data = data.decode("utf-8")
@@ -78,6 +110,8 @@ class AppServer(threading.Thread):
                         handlers[key](data[Options.disconnected]["Username"])
                     elif key==Options.transfer:
                         handlers[key](data[Options.transfer]["UserInformations"]["Username"],data[Options.transfer]["UserInformations"]["Message"],data[Options.transfer]["UserInformations"]['Destinator'])
+                    elif key==Options.allowed:
+                        handlers[key]() #data[Options.allowed]["UserInformations"]["Username"],data[Options.allowed]["UserInformations"]["Password"]
                     elif key==Options.connecteds:
                         handlers[key]()
                     else:
