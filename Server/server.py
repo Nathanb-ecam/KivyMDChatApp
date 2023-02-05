@@ -2,8 +2,8 @@ from datetime import datetime
 import socket
 import threading
 import json
-
 import time
+
 from Server_Options import Server_Options
 from User import User
 
@@ -26,7 +26,7 @@ def get_allowed_people():
 
 def read_users_from_file():
     users = []
-    with open("./Server/users.txt","r") as f:
+    with open("./users.txt","r") as f:
         print("#######################")
         print("All allowed people \n")
         for line in f.readlines():
@@ -37,7 +37,7 @@ def read_users_from_file():
 
 
 def write_users_to_file():
-    with open("./Server/users.txt","w") as f:
+    with open("./users.txt","w") as f:
         for client in _connected_people:
             f.write(json.dumps(_connected_people[client])+"\n")
 
